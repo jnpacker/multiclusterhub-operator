@@ -49,6 +49,7 @@ spec:
       containers:
       - args:
         - --health-probe-bind-address=:8081
+        - --service-ca-path=/var/run/secrets/service-ca/service-ca.crt
         command:
         - /manager
         env:
@@ -64,6 +65,10 @@ spec:
         - name: NO_PROXY
           value: {{ .Values.hubconfig.proxyConfigs.NO_PROXY }}
 {{- end }}
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         image: '{{ .Values.global.imageOverrides.mtv_integrations }}'
         imagePullPolicy: '{{ .Values.global.pullPolicy }}'
         livenessProbe:
@@ -102,6 +107,9 @@ spec:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: cert
           readOnly: true
+        - mountPath: /var/run/secrets/service-ca
+          name: service-ca
+          readOnly: true
       hostIPC: false
       hostNetwork: false
       hostPID: false
@@ -135,3 +143,6 @@ spec:
         secret:
           defaultMode: 420
           secretName: mtv-plan-webhook-server-cert
+      - configMap:
+          name: mtv-integrations-service-ca
+        name: service-ca
